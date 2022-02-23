@@ -1,9 +1,17 @@
 import { FormEvent, useState } from "react"
 import { SearchResults } from "../components/SearchResults";
 
+interface Results {
+  totalPrice: number;
+  data: any[];
+}
+
 export default function Home() {
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<Results>({
+    totalPrice: 0,
+    data: [],
+  });
 
   async function handleSearch(event: FormEvent) {
     event.preventDefault();
@@ -13,7 +21,12 @@ export default function Home() {
 
     const response = await fetch(`http://localhost:3333/products?q=${search}`);
     const data = await response.json();
-    setResults(data);
+
+    const totalPrice = data.reduce((total, product) => {
+      return total + product.price;
+  }, 0);
+
+    setResults({totalPrice, data});
   }
 
   return (
@@ -23,7 +36,7 @@ export default function Home() {
         <input type="text" value={search} onChange={e => setSearch(e.target.value)} />
         <button type="submit">Buscar</button>
       </form>
-      <SearchResults results={results} />
+      <SearchResults results={results.data} totalPrice={results.totalPrice} />
     </div>
   )
 }
